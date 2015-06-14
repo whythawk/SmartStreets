@@ -1,0 +1,59 @@
+<html>
+<head>
+  <!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="/static/bootstrap-3.3.4/css/bootstrap.min.css">
+
+<script src="/static/jquery-2.1.4.min.js"></script>
+<!-- Latest compiled and minified JavaScript -->
+<!--
+<script src="/static/bootstrap-3.3.4/js/bootstrap.min.js"></script>
+-->
+
+<link rel="stylesheet" href="/static/leaflet-0.7.3/leaflet.css" />
+<script src="/static/leaflet-0.7.3/leaflet.js"></script>
+
+<script src="/static/jquery-ui-1.11.4/jquery-ui.min.js"></script>
+
+<link rel="stylesheet" href="/static/jquery-ui-1.11.4/jquery-ui.min.css">
+
+<script type="text/javascript" src="/static/leaflet-providers.js"></script>
+
+<script src="/static/smartstreets.js"></script>
+
+<style>
+  span.popup-title {
+    font-weight:bold;
+    color:#449;
+  }
+
+  span.revenue-title {
+    color:#449;
+  }
+
+  div.panel-body select {
+    width: 100%;
+  }
+</style>
+
+</head>
+<body>
+
+<div class="container">
+  <h1>Smart streets</h1>
+  <div><select id="locations"></select></div>
+{% block content %}
+{% endblock %}
+</div>
+
+<script>
+
+
+
+$(function () {
+  $.getJSON('/areas', S.processAreas);
+})
+
+{% block scripts %}
+{% endblock %}
+</script>
+</body>

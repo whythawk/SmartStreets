@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="premises" style="width:1150px;height:500px;position:relative;display:none;">
+
+
+<div id="tabs" style="width:800px;height:500px;position:absolute;">
+
+  <!-- Nav tabs -->
+  <ul>
+    <li><a href="#maptab"><span>Map</span></a></li>
+      <li><a href="#listtab"><span>Listing</span></a></li>
+  </ul>
+
+  <!-- Tab panes -->
+    <div id="maptab" style="padding:5px 0px 10px 0px;">
+<div id="map" style="width:100%;height:100%;"></div>
+    </div>
+    <div id="listtab" style="padding:5px 0px 10px 0px;">
+<div id="list" style="width:100%;height:100%;overflow:auto;padding:10px;"></div>
+    </div>
+  </div>
+
+
+
+<!-- controls div start -->
+<div id="info" style="width:350px;height:500px;float:right;padding:20px;">
+
+<form>
+
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Filter</h3>
+  </div>
+  <div class="panel-body">
+
+    <div  class="form-group">
+      <label>Premises status:</label>
+      <div id="vacant">
+        <input type="radio" id="vacant_true" value="true" name="vacant" ><label for="vacant_true">Vacant</label>
+        <input type="radio" id="vacant_false" value="false" name="vacant" ><label for="vacant_false">Occupied</label>
+        <input type="radio" id="vacant_all" value="all" name="vacant" checked="checked"><label for="vacant_all">All</label>
+      </div>
+    </div>
+
+    <div  class="form-group">
+      <p>
+        <label for="revenue">Revenue:</label>
+        <input type="text" id="revenue" readonly style="border:0; color:#f6931f; font-weight:bold;">
+      </p>
+      <div id="revenue-range"></div>
+    </div>
+
+    <div  class="form-group">
+      <label for="business-type">Business type:</label>
+      <select id="business-type"></select>
+    </div>
+
+  </div>
+</div>
+
+<div id="map-extras" class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Map</h3>
+  </div>
+  <div class="panel-body">
+
+    <div  class="form-group">
+      <label for="map-tiles">Tiles:</label>
+      <select id="map-tiles"></select>
+    </div>
+
+    <div  class="form-group">
+      <button id="map-reset" type="button" >Reset map</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="list-extras" class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Listing</h3>
+  </div>
+  <div class="panel-body">
+
+    <div  class="form-group">
+      <label for="list-sort">Sort:</label>
+      <select id="list-sort"></select>
+    </div>
+
+  </div>
+</div>
+</form>
+
+</div>
+
+<!-- controls div end -->
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+  $(function () {
+//    S.map_page();
+  });
+{% endblock %}
