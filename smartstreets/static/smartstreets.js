@@ -14,8 +14,8 @@ var S = {
 	defaultTiles: 'Hydda.Full',
 
 	listSortOpts: [
-	  ['Business name (asc)', 'business_name'],
-	  ['Business name (desc)', 'business_name desc'],
+	  ['Rate payer (asc)', 'rate_payer'],
+	  ['Rate payer (desc)', 'rate_payer desc'],
 	  ['Business type (asc)', 'bus_type'],
 	  ['Business type (desc)', 'bus_type desc'],
 	  ['Rental (asc)', 'rent_val'],
