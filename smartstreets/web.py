@@ -155,6 +155,8 @@ def feed():
         'rent_val',
         'rate_payer',
         'vacant',
+        'employ_cost',
+        'employ_count',
     ]
 
     private_fields = [
@@ -247,9 +249,12 @@ def areas():
     )
 
 def make_revenue(item, size_dict, revenue_dict):
-    out = {}
+    out = []
     for bus_type in size_dict:
-        out[bus_type] = revenue_dict[bus_type] / (size_dict[bus_type] + item.size_m2) * item.size_m2
+        out.append([[bus_type], (
+            revenue_dict[bus_type] / (size_dict[bus_type] + item.size_m2) * item.size_m2
+        )])
+    out.sort(key=lambda x: -x[1])
     return out
 
 ##@app.route("/feed_premisis/<id>")

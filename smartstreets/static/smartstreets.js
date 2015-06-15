@@ -26,6 +26,8 @@ var S = {
 
 	mapInitialised: false,
 
+	popupLimitPotentialRevenues: 3,
+
 	processFeedData: function (data){
 	  var fields;
 	  var i;
@@ -462,11 +464,15 @@ var S = {
 	  popup.push('</div>');
 	  popup.push('<div class="panel-body">');
 	  popup.push(S.info('Name:', p.business_name));
-	  popup.push(S.info('Rate payer:', p.rate_payer));
+	  if (!p.vacant){
+		popup.push(S.info('Rate payer:', p.rate_payer));
+	  }
 	  popup.push(S.info('Rent:', S.asMoney(p.rent_val)));
+	  popup.push(S.info('Salaries:', S.asMoney(p.employ_cost)));
+	  popup.push(S.info('Employees:', p.employ_count));
 	  popup.push(S.info('Revenue:', S.asMoney(p.revenue)));
 	  if (p.vacant){
-		popup.push(S.infoPotentialrevenue(p.revenue_potential));
+		popup.push(S.infoPotentialrevenue(p.revenue_potential, S.popupLimitPotentialRevenues));
 	  }
 	  popup.push('</div>');
 	  popup.push('</div>');
@@ -563,12 +569,14 @@ var S = {
 	  return '£' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 	},
 
-	infoPotentialrevenue: function (revenues){
+	infoPotentialrevenue: function (revenues, limit){
 	  var out = [];
-	  for (var bus in revenues){
-		if (revenues.hasOwnProperty(bus)){
-		  out.push(S.infoPotential(S.business_type_name[bus] + ':', S.asMoney(revenues[bus])));
-		}
+	  var i;
+	  var bus;
+	  for (i = 0; i < revenues.length && (!limit || i < limit); i++){
+//
+		bus = revenues[i];
+		out.push(S.infoPotential(S.business_type_name[bus[0]] + ':', S.asMoney(bus[1])));
 	  }
 	  return S.info('Potential revenue:', out.join(', '));
 	},
