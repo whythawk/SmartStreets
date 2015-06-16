@@ -1,3 +1,4 @@
+/*global $, L*/
 
 var S = (function () {
 	'use strict';
@@ -82,7 +83,7 @@ var S = (function () {
 			}
 			if (row.lat && row.lng){
 				l = row.lat + ',' + row.lng;
-				if (l in locations){
+				if (locations.hasOwnProperty(l)){
 				locations[l].push(row.id);
 				} else {
 				locations[l] = [row.id];
@@ -391,7 +392,7 @@ var S = (function () {
 			}
 
 			// business type
-			if (S.filter.businessType && item.bus_type != S.filter.businessType){
+			if (S.filter.businessType && item.bus_type !== S.filter.businessType){
 				continue;
 			}
 
@@ -429,13 +430,15 @@ var S = (function () {
 
 		addMarker: function (latLng, ids){
 			var i;
+			var id;
+			var p;
 			var popup = [];
 			var count = 0;
 			popup.push('<div style="width:250px;max-height:200px;overflow:auto;position:relative;padding-right:10px;">');
 			for (i=0; i < ids.length; i++){
 			count += 1;
-			var id = ids[i];
-			var p = S.premises[id];
+			id = ids[i];
+			p = S.premises[id];
 			popup.push(S.makeItem(p, count));
 			}
 			popup.push('</div>');
@@ -490,8 +493,6 @@ var S = (function () {
 
 		makeList: function (){
 			var i;
-			var l;
-			var latLng;
 			var items;
 			// remove existing list
 			$('#list').empty().scrollTop(0);
@@ -508,11 +509,13 @@ var S = (function () {
 			// add items
 			var count = 0;
 			var popup = [];
+			var id;
+			var p;
 			for (i=0; i < items.length; i++){
-			count += 1;
-			var id = items[i];
-			var p = S.premises[id];
-			popup.push(S.makeItem(p, count));
+				count += 1;
+				id = items[i];
+				p = S.premises[id];
+				popup.push(S.makeItem(p, count));
 			}
 
 			$('#list').append(popup.join('\n'));
@@ -523,7 +526,7 @@ var S = (function () {
 			var field = sort[0];
 			var c1;
 			var c2;
-			var sortDir = (sort.length == 1) ? 1 : -1;
+			var sortDir = (sort.length === 1) ? 1 : -1;
 			var prem = S.premises;
 			var bus_trans = S.business_type_name;
 
@@ -531,7 +534,7 @@ var S = (function () {
 			c1 = prem[a][field];
 			c2 = prem[b][field];
 
-			if (field == 'bus_type'){
+			if (field === 'bus_type'){
 				c1 = bus_trans[c1];
 				c2 = bus_trans[c2];
 			}
@@ -599,7 +602,7 @@ var S = (function () {
 		areaSelected: function (e){
 			var value = $(e.target).val();
 			// ignore select a location
-			if (value == '-'){
+			if (value === '-'){
 			return;
 			}
 			value = parseInt(value, 10);
@@ -626,7 +629,7 @@ var S = (function () {
 		}
 
 	};
-})();
+}());
 
 
 
