@@ -8,9 +8,7 @@ from config import config
 
 app = Flask(__name__)
 app.config.update(config)
-#app.config['DEBUG'] = True
-#app.config['SECRET_KEY'] = '---CHANGE-THIS-----'
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+
 db = SQLAlchemy(app)
 
 
@@ -41,8 +39,10 @@ FIELD_CONVERT_PREMISES = {
     'ASSESSED_EMPLOYMENT_COST': 'EMPLOY_COST',
 }
 
+
 def fn_vacant(value):
     return bool(value.lower() == 'y')
+
 
 def make_date(value):
     try:
@@ -50,6 +50,7 @@ def make_date(value):
     except:
         value = None
     return value
+
 
 def make_float(value):
     try:
@@ -81,6 +82,7 @@ VALUE_CONVERSION_FN_PREMISES = {
     'BUS_TYPE': make_business_type,
 }
 
+
 class Expenditure(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     city = db.Column(db.String(80))
@@ -94,7 +96,6 @@ class Expenditure(db.Model):
 
     def __repr__(self):
         return '<Expenditure %r>' % self.type
-
 
 
 class Premises(db.Model):
@@ -123,7 +124,6 @@ class Premises(db.Model):
     revenue = db.Column(db.Float)
     employ_count = db.Column(db.Float)
     employ_cost = db.Column(db.Float)
-
 
     def __init__(self, data):
         for key, value in data.items():
@@ -181,9 +181,8 @@ def feed():
     results = results.all()
 
     # sort business types for front end
-    business_types = [[k, v] for k,v in BUSINESS_TYPES.items()]
+    business_types = [[k, v] for k, v in BUSINESS_TYPES.items()]
     business_types.sort(key=lambda x: x[1])
-
 
     # potential revenues
     col_size_m2 = col_names.index('size_m2')
@@ -200,9 +199,6 @@ def feed():
             size_dict[bus_type] += result[col_size_m2]
             revenue_dict[bus_type] += result[col_revenue]
 
-
-
-
     remove_num_fields = -(len(private_fields))
     for index in xrange(len(results)):
         result = results[index]
@@ -211,14 +207,14 @@ def feed():
         else:
             revenue = {}
         results[index] = result[:remove_num_fields] + (revenue,)
-    fields.append('revenue_potential');
-
+    fields.append('revenue_potential')
 
     return jsonify(
         fields=fields,
         data=results,
         business_types=business_types,
     )
+
 
 @app.route("/areas")
 def areas():
@@ -248,32 +244,36 @@ def areas():
         areas=output,
     )
 
+
 def make_revenue(item, size_dict, revenue_dict):
     out = []
     for bus_type in size_dict:
-        out.append([[bus_type], (
-            revenue_dict[bus_type] / (size_dict[bus_type] + item.size_m2) * item.size_m2
-        )])
+        out.append(
+            [[bus_type],
+             (revenue_dict[bus_type] / (size_dict[bus_type] + item.size_m2) *
+              item.size_m2)])
     out.sort(key=lambda x: -x[1])
     return out
 
-##@app.route("/feed_premisis/<id>")
-##def feed_premisis(id):
-##    fields = [
-##        'id',
-##        'bus_type',
-##        'business_name',
-##        'lat',
-##        'lng',
-##        'revenue',
-##        'vacant',
-##    ]
-##
-##    result = Premises.query.filter_by(id=id).first_or_404()
-##    output = {}
-##    for field in fields:
-##        output[field] = getattr(result, field)
-##    return jsonify(data=output)
+
+@app.route("/feed_premisis/<id>")
+def feed_premisis(id):
+    fields = [
+        'id',
+        'bus_type',
+        'business_name',
+        'lat',
+        'lng',
+        'revenue',
+        'vacant',
+        ]
+
+    result = Premises.query.filter_by(id=id).first_or_404()
+    output = {}
+    for field in fields:
+        output[field] = getattr(result, field)
+    return jsonify(data=output)
+
 
 @app.route("/")
 def hello():
