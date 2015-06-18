@@ -31,6 +31,37 @@
     #disclaimer {
       color: #449;
     }
+    span.rating {
+      color: #FFF;
+      padding-left: 5px;
+      padding-right: 5px;
+      border-radius: 3px;
+      white-space:nowrap;
+      display: inline-block;
+    }
+    span.rating-good {
+      background-color: green;
+    }
+    span.rating-avg {
+      background-color: orange;
+    }
+    span.rating-poor {
+      background-color: red;
+    }
+
+
+    div.page-content h1 {
+      font-size:2em;
+    }
+    div.page-content p {
+      font-size:1.2em;
+    }
+    div.page-content img {
+      max-width:810px;
+    }
+    ul.nav li a {
+      font-size:1.4em;
+    }
   </style>
 
 </head>
@@ -39,20 +70,37 @@
 
   <div class="container">
     <h1>Smart streets</h1>
+    <nav class="navbar navbar-default">
+    <ul class="nav navbar-nav">
+      <li><a class="ss-nav-page" href="#">Home</a></li>
+      <li><a class="ss-nav-page" href="#businesses">Business seekers</a></li>
+      <li><a class="ss-nav-page" href="#councils">Local Councils</a></li>
+      <li><a class="ss-nav-page" href="#landlords">Letting Agents</a></li>
+      <li><a class="ss-nav-city" href="#LS1~map">Leeds</a></li>
+      <li><a class="ss-nav-city" href="#SR1~map">Sunderland</a></li>
+    </ul>
+  </nav>
+<!--
     <div>
       <select id="locations"></select>
     </div>
+-->
+    <div id="page-content"></div>
+    <div id="premises-content" style="width:1150px;height:500px;position:relative;display:none;">
+
     {% block content %} {% endblock %}
     <div id="disclaimer">
-      disclaimer: this is an estimate and approximation and we can’t be held liable or
-      responsible for errors
+      Notice: data are estimates and there are potential sources of error in our data and analysis.
     </div>
   </div>
 
   <script>
     $(function()
     {
-      $.getJSON('/areas', S.processAreas);
+      // $.getJSON('/areas', S.processAreas);
+      $('.ss-nav-page').click(S.navClickPage);
+      $('.ss-nav-city').click(S.navClickCity);
+      S.initPage();
     })
   </script>
   {% block scripts %} {% endblock %}
