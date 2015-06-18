@@ -23,10 +23,11 @@ def premises_postcodes():
 
 
 def import_premises():
-    f = open('sunderland2.csv')
+    f = open('latest.csv')
     r = unicodecsv.reader(f, encoding='utf-8')
     headers = r.next()
     Premises.query.filter_by().delete()
+    db.session.commit()
     c = 0
     for row in r:
         c += 1
@@ -37,6 +38,7 @@ def import_premises():
         if c % 10 == 0:
             print '%s premises imported' % c
     print 'FINISHED %s premises imported' % c
+
 
 def import_expenditure():
     '''
@@ -54,14 +56,14 @@ def import_expenditure():
             type=row_dict['BUSINESS_TYPE'],
         ).delete()
         exp = Expenditure(
-            city = row_dict['CITY'],
-            type = row_dict['BUSINESS_TYPE'],
-            spend = row_dict['SPEND_PER_CAPITA'],
+            city=row_dict['CITY'],
+            type=row_dict['BUSINESS_TYPE'],
+            spend=row_dict['SPEND_PER_CAPITA'],
         )
         db.session.add(exp)
         db.session.commit()
     print 'Expenditure imported'
 
-import_expenditure()
+#import_expenditure()
 import_premises()
 premises_postcodes()
