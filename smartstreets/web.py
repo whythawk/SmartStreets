@@ -1,6 +1,7 @@
+import os
 from collections import defaultdict
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, abort
 from flask.ext.sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -11,24 +12,39 @@ app.config.update(config)
 
 db = SQLAlchemy(app)
 
+HTML_PAGES = [
+    'home',
+    'businesses',
+    'councils',
+    'landlords',
+]
+
+HIDDEN_BUS_TYPES = [
+    'HOTEL',
+    'EDU',
+    'ACCOM',
+    'TRANSPORT',
+    'COUNCIL',
+    'NONCOM',
+]
 
 BUSINESS_TYPES = {
-    'FOOD': ['Food & non-alcoholic drinks', ''],
-    'ALCOHOL': ['Alcoholic drinks, tobacco & narcotics', ''],
-    'CLOTHES': ['Clothing & footwear', ''],
-    'ACCOM': ['Housing, fuel & power', ''],
-    'HOUSEHOLD': ['Household goods & services', ''],
-    'HEALTH': ['Health', ''],
-    'TRANSPORT': ['Transport', ''],
-    'COMMS': ['Communication', ''],
-    'REC': ['Recreation & culture', ''],
-    'EDU': ['Education', ''],
-    'REST': ['Catering services', ''],
-    'HOTEL': ['Accommodation services', ''],
-    'PSERV': ['Personal services', ''],
-    'MISC': ['Miscellaneous goods & services', ''],
-    'COUNCIL': ['Local Council Service'],
-    'NONCOM': ['Non-revenue-generating site'],
+    'FOOD': 'Food & non-alcoholic drinks',
+    'ALCOHOL': 'Alcoholic drinks, tobacco & narcotics',
+    'CLOTHES': 'Clothing & footwear',
+    'ACCOM': 'Housing, fuel & power',
+    'HOUSEHOLD': 'Household goods & services',
+    'HEALTH': 'Health',
+    'TRANSPORT': 'Transport',
+    'COMMS': 'Communication',
+    'REC': 'Recreation & culture',
+    'EDU': 'Education',
+    'REST': 'Catering services',
+    'HOTEL': 'Accommodation services',
+    'PSERV': 'Personal services',
+    'MISC': 'Miscellaneous goods & services',
+    'COUNCIL': 'Local Council Service',
+    'NONCOM': 'Non-revenue-generating site',
 }
 
 
@@ -157,10 +173,10 @@ def feed():
         'vacant',
         'employ_cost',
         'employ_count',
+        'size_m2',
     ]
 
     private_fields = [
-        'size_m2'
     ]
 
     cols = []
@@ -172,16 +188,16 @@ def feed():
     results = Premises.query.with_entities(
         *cols
     )
-    city = request.args.get('city')
-    if city:
-        results = results.filter_by(city=city)
+  #  city = request.args.get('city')
+  #  if city:
+  #      results = results.filter_by(city=city)
     outcode = request.args.get('outcode')
     if outcode:
         results = results.filter_by(outcode=outcode)
     results = results.all()
 
     # sort business types for front end
-    business_types = [[k, v] for k, v in BUSINESS_TYPES.items()]
+    business_types = [[k, v, k in HIDDEN_BUS_TYPES] for k, v in BUSINESS_TYPES.items()]
     business_types.sort(key=lambda x: x[1])
 
     # potential revenues
@@ -196,23 +212,27 @@ def feed():
     for result in results:
         bus_type = result[col_bus_type]
         if bus_type:
-            size_dict[bus_type] += result[col_size_m2]
+            size_dict[bus_type] += result[col_size_m2] or 0
             revenue_dict[bus_type] += result[col_revenue]
 
-    remove_num_fields = -(len(private_fields))
+
+    num_private_fields = len(private_fields)
     for index in xrange(len(results)):
         result = results[index]
         if result[col_vacant]:
             revenue = make_revenue(result, size_dict, revenue_dict)
         else:
             revenue = {}
-        results[index] = result[:remove_num_fields] + (revenue,)
+        if num_private_fields:
+            result = result[:-num_private_fields]
+        results[index] = result + (revenue,)
     fields.append('revenue_potential')
 
     return jsonify(
         fields=fields,
         data=results,
         business_types=business_types,
+        outcode=outcode,
     )
 
 
@@ -247,12 +267,18 @@ def areas():
 
 def make_revenue(item, size_dict, revenue_dict):
     out = []
-    for bus_type in size_dict:
-        out.append(
-            [[bus_type],
-             (revenue_dict[bus_type] / (size_dict[bus_type] + item.size_m2) *
-              item.size_m2)])
-    out.sort(key=lambda x: -x[1])
+    if item.size_m2 and item.rent_val:
+        for bus_type in size_dict:
+            ass_revenue = (revenue_dict[bus_type] / (size_dict[bus_type] + item.size_m2) * item.size_m2)
+            if not ass_revenue:
+                continue
+            out.append([
+                bus_type,
+                ass_revenue,
+           #      (ASSESSED_EMPLOYMENT_COST + RENT_VAL) / ASSESSED_REVENUE
+                (item.employ_cost + item.rent_val)/ ass_revenue
+            ])
+        out.sort(key=lambda x: x[2])
     return out
 
 
@@ -273,6 +299,15 @@ def feed_premisis(id):
     for field in fields:
         output[field] = getattr(result, field)
     return jsonify(data=output)
+
+
+@app.route("/feed_page/<page>")
+def feed_page(page):
+    if not page:
+        page = 'home'
+    if page not in HTML_PAGES:
+        return abort(404)
+    return render_template('%s.html' % page)
 
 
 @app.route("/")
