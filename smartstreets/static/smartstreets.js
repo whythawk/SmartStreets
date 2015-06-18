@@ -1,4 +1,4 @@
-/*global $, L*/
+/*global $, L, location, window*/
 
 var S = (function() {
   'use strict';
@@ -9,7 +9,6 @@ var S = (function() {
       'border': 1,
       'borderColor': '#F9F',
       'textColor': '#F0F'
-
     },
 
     defaultTiles: 'Hydda.Full',
@@ -29,6 +28,25 @@ var S = (function() {
 
     popupLimitPotentialRevenues: 3,
 
+    initPage: function (){
+      var fragment;
+      var fragments;
+      fragment = window.location.hash;
+      if (fragment && fragment.length > 1){
+        fragments = fragment.substring(1).split('~');
+      } else {
+        fragments = ['home'];
+      }
+      if (fragments.length === 1){
+        $.get('/feed_page/' + fragments[0], S.pageUpdate, 'html');
+      } else if (fragments.length === 2){
+
+        $.getJSON('/feed', {outcode: fragments[0]}, S.processBusinessMapFeed);
+      }
+
+
+    },
+
     processFeedData: function(data) {
       var fields;
       var i;
@@ -41,7 +59,6 @@ var S = (function() {
       var revenueMin;
       var revenueMax;
       var businessType;
-      var businessTypes;
       var lngs;
       var lats;
       var premises_ids;
@@ -49,12 +66,11 @@ var S = (function() {
       // BUSINESS TYPES
       // 1. list stored in S.businessTypes
       // 2. code to description hash S.business_type_name
-      businessTypes = data.business_types;
-      S.businessTypes = businessTypes;
+      S.businessTypes = data.business_types;
       S.business_type_name = {};
-      for (i = 0; i < businessTypes.length; i++) {
-        businessType = businessTypes[i];
-        S.business_type_name[businessType[0]] = businessType[1][0];
+      for (i = 0; i < S.businessTypes.length; i++) {
+        businessType = S.businessTypes[i];
+        S.business_type_name[businessType[0]] = businessType[1];
       }
 
       fields = data.fields;
@@ -121,8 +137,9 @@ var S = (function() {
 
     // MAP FUNCTIONS
 
-    map_page: function() {
-      $('#premises').show();
+    map_page: function(activeTab) {
+      $('#premises-content').show();
+      $('#page-content').hide();
       if (S.mapInitialised === true) {
         return;
       }
@@ -130,8 +147,8 @@ var S = (function() {
       // tabs
       var $tabs = $('#tabs');
       $tabs.tabs({
-        'activate': S.filterAction,
-        'active': 0
+        'activate': S.tabChangeEvent,
+        'active': activeTab
       });
 
       // sort tab content heights
@@ -162,6 +179,18 @@ var S = (function() {
       $('#list-sort').on('keyPress change', S.filterAction);
     },
 
+      tabChangeEvent: function () {
+        var active = $("#tabs").tabs("option", "active");
+        var action = S.getFragment($('#tabs ul:eq(0) li:eq(' + active + ') a:eq(0)').attr('href'));
+        var city = window.location.hash.split('~')[0];
+        window.location.hash = city + '~' + action;
+        $('.ss-nav-city').each(function (index, item) {
+          city = $(item).attr('href').split('~')[0];
+          $(item).attr('href', city + '~' + action);
+        });
+       // window.location.hash = active[0].attr('href')
+        S.filterAction();
+      },
 
     update_area: function(area) {
       // get the marker data
@@ -306,25 +335,35 @@ var S = (function() {
       }));
       for (i = 0; i < S.businessTypes.length; i++) {
         bus_type = S.businessTypes[i];
-        $select.append($('<option>', {
-          value: bus_type[0],
-          text: bus_type[1][0]
-        }));
+        if (!bus_type[2]) {
+          $select.append($('<option>', {
+            value: bus_type[0],
+            text: bus_type[1]
+
+          }));
+        }
       }
     },
 
     processBusinessMapFeed: function(data) {
-      S.map_page();
+      var activeTab;
       S.processFeedData(data);
+      if (S.premises_ids.length){
+        if (location.hash.split('~')[1] === 'list'){
+          activeTab = 1;
+        } else {
+          activeTab = 0 ;
+        }
+        S.map_page(activeTab);
+        S.update_filters();
+        if (S.map !== null) {
+          S.map.remove();
+          S.map = null;
+        }
 
-      S.update_filters();
-      if (S.map !== null) {
-        S.map.remove();
-        S.map = null;
+        S.initBusinessTypeSelect();
+        S.filterAction();
       }
-
-      S.initBusinessTypeSelect();
-      S.filterAction();
     },
 
 
@@ -332,6 +371,8 @@ var S = (function() {
     filterAction: function() {
       var active = $("#tabs").tabs("option", "active");
       if (active === 0) {
+        $('#maptab').show();
+        $('#listtab').hide();
         if (S.map === null) {
           // create the map
           S.map = L.map('map');
@@ -344,6 +385,9 @@ var S = (function() {
         $('#map-extras').hide();
         $('#list-extras').show();
         S.makeList();
+
+        $('#maptab').hide();
+        $('#listtab').show();
       }
     },
 
@@ -446,7 +490,7 @@ var S = (function() {
         count += 1;
         id = ids[i];
         p = S.premises[id];
-        popup.push(S.makeItem(p, count));
+        popup.push(S.makeItem(p, count, S.popupLimitPotentialRevenues));
       }
       popup.push('</div>');
       var marker = L.marker(latLng, {
@@ -459,7 +503,7 @@ var S = (function() {
       S.markers.push(marker);
     },
 
-    makeItem: function(p, count) {
+    makeItem: function(p, count, limit) {
       var popup = [];
       var panel_class = p.vacant ? 'panel-success' : 'panel-info';
       popup.push('<div class="panel ' + panel_class + '" ><div class="panel-heading">');
@@ -481,13 +525,36 @@ var S = (function() {
       popup.push(S.info('Rent:', S.asMoney(p.rent_val)));
       popup.push(S.info('Salaries:', S.asMoney(p.employ_cost)));
       popup.push(S.info('Employees:', p.employ_count));
+      popup.push(S.info('Size m<sup>2</sup>:', p.size_m2));
       popup.push(S.info('Revenue:', S.asMoney(p.revenue)));
       if (p.vacant) {
-        popup.push(S.infoPotentialrevenue(p.revenue_potential, S.popupLimitPotentialRevenues));
+        popup.push(S.infoPotentialrevenue(p.revenue_potential, limit));
+      } else {
+        popup.push(S.info('Rating:', S.ratingHtml(S.makeRating(p))));
       }
       popup.push('</div>');
       popup.push('</div>');
       return popup.join(' ');
+    },
+
+    makeRating: function (item){
+      return (item.employ_cost + item.rent_val) / item.revenue;
+    },
+
+    ratingHtml: function (rating){
+      var text;
+      var css;
+      if (rating < 0.9){
+        text = 'Good';
+        css = 'rating-good';
+      } else if (rating < 1.1) {
+        text = 'Average';
+        css = 'rating-avg';
+      } else {
+        text = 'Poor';
+        css = 'rating-poor';
+      }
+      return '<span class="rating ' + css + '"> '+ text + '</span>';
     },
 
     setTiles: function(tile) {
@@ -525,7 +592,7 @@ var S = (function() {
         count += 1;
         id = items[i];
         p = S.premises[id];
-        popup.push(S.makeItem(p, count));
+        popup.push(S.makeItem(p, count, 0));
       }
 
       $('#list').append(popup.join('\n'));
@@ -588,7 +655,7 @@ var S = (function() {
       for (i = 0; i < revenues.length && (!limit || i < limit); i++) {
         //
         bus = revenues[i];
-        out.push(S.infoPotential(S.business_type_name[bus[0]] + ':', S.asMoney(bus[1])));
+        out.push(S.infoPotential(S.business_type_name[bus[0]] + ':', S.asMoney(bus[1]) + ' ' +  S.ratingHtml(bus[2])));
       }
       return S.info('Potential revenue:', out.join(', '));
     },
@@ -619,6 +686,32 @@ var S = (function() {
       value = parseInt(value, 10);
       value = S.areas[value];
       S.update_area(value);
+    },
+
+    getFragment: function (url){
+      // FIXME this is crap
+      return url.split('#')[1];
+    },
+
+    navClickPage: function(e){
+      var fragment = S.getFragment($(e.target).attr('href'));
+      if (!fragment){
+        fragment = 'home';
+      }
+      $.get('/feed_page/' + fragment, S.pageUpdate, 'html');
+    },
+
+    navClickCity: function(e){
+      var fragment = S.getFragment($(e.target).attr('href'));
+      var outcode = fragment.split('~')[0];
+      $.getJSON('/feed', {outcode: outcode}, S.processBusinessMapFeed);
+
+    },
+
+      // FIXME this is crap
+    pageUpdate: function(data){
+      $('#page-content').empty().append(data).show();
+      $('#premises-content').hide();
     },
 
 
