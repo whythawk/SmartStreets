@@ -28,8 +28,10 @@
     div.panel-body select {
       width: 100%;
     }
-    #disclaimer {
-      color: #449;
+    div.disclaimer {
+      clear:both;
+      position:relative;
+      margin-top:20px;
     }
     span.rating {
       color: #FFF;
@@ -86,13 +88,8 @@
     </div>
 -->
     <div id="page-content"></div>
-    <div id="premises-content" style="width:1150px;height:500px;position:relative;display:none;">
 
     {% block content %} {% endblock %}
-    <div id="disclaimer">
-      Notice: data are estimates and there are potential sources of error in our data and analysis.
-    </div>
-  </div>
 
   <script>
     $(function()

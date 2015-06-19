@@ -3,8 +3,10 @@
 {% block content %}
 
 
-
-<div id="tabs" style="width:800px;height:500px;position:absolute;">
+<div id="premises-content" style="display:none">
+<div style="width:1150px;height:500px;position:relative;">
+    <div style="position:relative;">
+<div id="tabs" style="width:750px;height:500px;position:absolute;">
 
   <!-- Nav tabs -->
   <ul>
@@ -29,7 +31,7 @@
 
 <!-- controls div start -->
 
-<div id="info" style="width:350px;height:500px;float:right;padding:20px;">
+<div id="info" style="width:400px;float:right;padding:20px;position:relative;">
 
 <form>
 
@@ -99,8 +101,13 @@
 </form>
 
 </div>
-
 <!-- controls div end -->
 
+</div>
+</div>
+<div class="alert alert-info disclaimer" role="alert">
+      Notice: data are estimates and there are potential sources of error in our data and analysis.
+    </div>
 
+</div>
 {% endblock %}
