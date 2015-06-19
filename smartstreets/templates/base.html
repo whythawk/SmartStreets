@@ -2,6 +2,8 @@
 
 <head>
 <title>Pikhaya Smart Streets</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
   <!-- Latest compiled and minified CSS -->
   <link rel="stylesheet" href="/static/bootstrap-3.3.4/css/bootstrap.min.css">
 
@@ -82,6 +84,7 @@
 <body>
 
   <div class="container">
+  <div class="row">
     <h1>Pikhaya Smart Streets</h1>
     <nav class="navbar navbar-default">
     <ul class="nav navbar-nav">
@@ -93,15 +96,19 @@
       <li><a class="ss-nav-city" href="#SR1~map">Sunderland</a></li>
     </ul>
   </nav>
+  </div>
 <!--
     <div>
       <select id="locations"></select>
     </div>
 -->
+
+  <div class="row">
     <div id="page-content"></div>
 
     {% block content %} {% endblock %}
 
+  </div>
   <script>
     $(function()
     {
