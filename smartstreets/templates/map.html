@@ -4,9 +4,18 @@
 
 
 <div id="premises-content" style="display:none">
-<div style="width:1150px;height:500px;position:relative;">
-    <div style="position:relative;">
-<div id="tabs" style="width:750px;height:500px;position:absolute;">
+
+<div class="panel panel-default page-content">
+  <div class="panel-heading">
+    <h1 class="panel-title">
+      City
+    </h1>
+  </div>
+
+  <div class="panel-body">
+
+    <div class="col-md-8">
+<div id="tabs">
 
   <!-- Nav tabs -->
   <ul>
@@ -26,12 +35,13 @@
     <!-- Tab panes end -->
 
   </div>
+  </div>
 
 
 
 <!-- controls div start -->
 
-<div id="info" style="width:400px;float:right;padding:20px;position:relative;">
+    <div class="col-md-4">
 
 <form>
 
@@ -76,7 +86,11 @@
 
   </div>
 </div>
+</form>
+</div>
 
+    <div class="col-md-4">
+<form>
 <div id="map-extras" class="panel panel-default">
   <div class="panel-heading">
     <h3 class="panel-title">Map</h3>
@@ -111,13 +125,14 @@
 </form>
 
 </div>
+</div>
 <!-- controls div end -->
 
-</div>
-</div>
-<div class="alert alert-info disclaimer" role="alert">
+<div class="panel-footer">
       Notice: data are estimates and there are potential sources of error in our data and analysis.
     </div>
 
+</div>
+</div>
 </div>
 {% endblock %}
