@@ -589,7 +589,8 @@ var S = (function() {
       popup.push('<div class="panel-body">');
       popup.push(S.info('Name:', p.business_name));
       if (!p.vacant) {
-        popup.push(S.info('Rate payer:', p.rate_payer));
+        //popup.push(S.info('Rate payer:', p.rate_payer));
+        popup.push(S.infoHeader(p.rate_payer));
       }
       popup.push(S.info('Rent:', S.asMoney(p.rent_val)));
       popup.push(S.info('Salaries:', S.asMoney(p.employ_cost)));
@@ -743,6 +744,13 @@ var S = (function() {
         return '';
       }
       return '<span class="popup-title" >' + title + '</span>' + ' ' + data + '<br />';
+    },
+
+    infoHeader: function(title) {
+      if (!title) {
+        return '';
+      }
+      return '<span class="popup-header" >' + title + '<hr></span>';
     },
 
     infoPotential: function(title, data) {
