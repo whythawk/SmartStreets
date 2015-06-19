@@ -84,6 +84,7 @@ var S = (function() {
       }
 
       fields = data.fields;
+      S.city = data.city;
       data = data.data;
 
       // PREMISES
@@ -393,6 +394,7 @@ var S = (function() {
     processBusinessMapFeed: function(data) {
       var activeTab;
       S.processFeedData(data);
+      $('#map-city').text(S.city);
       if (S.premises_ids.length){
         if (location.hash.split('~')[1] === 'list'){
           activeTab = 1;

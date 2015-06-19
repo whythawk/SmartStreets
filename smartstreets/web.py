@@ -15,6 +15,11 @@ db = SQLAlchemy(app)
 
 RENT_VALUE_POTENTIAL_FACTOR = 0.12
 
+CITIES = {
+    'SR1': 'Sunderland',
+    'LS1': 'Leeds',
+}
+
 HTML_PAGES = [
     'home',
     'businesses',
@@ -265,6 +270,7 @@ def feed():
         data=results,
         business_types=business_types,
         outcode=outcode,
+        city=CITIES.get(outcode),
     )
 
 def best_rating(revenue):
