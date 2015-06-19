@@ -30,6 +30,8 @@ def import_premises():
     db.session.commit()
     c = 0
     for row in r:
+        if not ('').join(row).strip():
+            continue
         c += 1
         row_dict = dict(zip(headers, row))
         prem = Premises(row_dict)
