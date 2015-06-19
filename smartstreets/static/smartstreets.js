@@ -20,8 +20,10 @@ var S = (function() {
     defaultTiles: 'Hydda.Full',
 
     listSortOpts: [
-      ['Rating (asc)', 'rating'],
-      ['Rating (desc)', 'rating desc'],
+      ['Rating (asc)', 'rating desc'],
+      ['Rating (desc)', 'rating'],
+      ['Area (asc)', 'size_m2'],
+      ['Area (desc)', 'size_m2 desc'],
       ['Rate payer (asc)', 'rate_payer'],
       ['Rate payer (desc)', 'rate_payer desc'],
       ['Business type (asc)', 'bus_type'],
