@@ -52,6 +52,16 @@
     </div>
 
     <div  class="form-group">
+      <label>Rating:</label>
+      <div id="rating">
+        <input type="radio" id="rating_good" value="2" name="rating" ><label for="rating_good">Good</label>
+        <input type="radio" id="rating_avg" value="1" name="rating" ><label for="rating_avg">Average</label>
+        <input type="radio" id="rating_poor" value="0" name="rating" checked="checked"><label for="rating_poor">Poor</label>
+        <input type="radio" id="rating_all" value="all" name="rating" checked="checked"><label for="rating_all">All</label>
+      </div>
+    </div>
+
+    <div  class="form-group">
       <p>
         <label for="revenue">Revenue:</label>
         <input type="text" id="revenue" readonly style="border:0; color:#f6931f; font-weight:bold;">

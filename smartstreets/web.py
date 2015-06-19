@@ -207,6 +207,7 @@ def feed():
     outcode = request.args.get('outcode')
     if outcode:
         results = results.filter_by(outcode=outcode)
+    results = results.filter(Premises.size_m2 > 2)
     results = results.all()
 
     # sort business types for front end
@@ -218,6 +219,8 @@ def feed():
     col_bus_type = col_names.index('bus_type')
     col_revenue = col_names.index('revenue')
     col_vacant = col_names.index('vacant')
+    col_rent_val = col_names.index('rent_val')
+    col_employ_cost = col_names.index('employ_cost')
 
     size_dict = defaultdict(int)
     revenue_dict = defaultdict(int)
@@ -226,7 +229,7 @@ def feed():
         bus_type = result[col_bus_type]
         if bus_type:
             size_dict[bus_type] += result[col_size_m2] or 0
-            revenue_dict[bus_type] += result[col_revenue]
+            revenue_dict[bus_type] += result[col_revenue] or 0
 
 
     num_private_fields = len(private_fields)
@@ -234,12 +237,25 @@ def feed():
         result = results[index]
         if result[col_vacant]:
             revenue = make_revenue(result, size_dict, revenue_dict)
+            rating = best_rating(revenue)
         else:
             revenue = {}
+            rating = make_rating(
+                result[col_employ_cost],
+                result[col_rent_val],
+                result[col_revenue]
+            )
+
+            print (
+                result[col_employ_cost],
+                result[col_rent_val],
+                result[col_revenue]
+            )
         if num_private_fields:
             result = result[:-num_private_fields]
-        results[index] = result + (revenue,)
+        results[index] = result + (revenue, rating)
     fields.append('revenue_potential')
+    fields.append('rating')
 
     return jsonify(
         fields=fields,
@@ -247,6 +263,9 @@ def feed():
         business_types=business_types,
         outcode=outcode,
     )
+
+def best_rating(revenue):
+    return revenue[0][2]
 
 
 @app.route("/areas")
@@ -278,6 +297,21 @@ def areas():
     )
 
 
+def make_rating(employ_cost, rent_val, revenue):
+    if not (revenue and employ_cost and rent_val):
+        return None
+    rating = (employ_cost + rent_val)/ revenue
+    return [rating, quick_rating(rating)]
+
+
+def quick_rating(rating):
+    if rating < 0.9:
+        return 2
+    if rating > 1.1:
+        return 0
+    return 1
+
+
 def make_revenue(item, size_dict, revenue_dict):
     out = []
     if item.size_m2 and item.rent_val:
@@ -285,11 +319,15 @@ def make_revenue(item, size_dict, revenue_dict):
             ass_revenue = (revenue_dict[bus_type] / (size_dict[bus_type] + item.size_m2) * item.size_m2)
             if not ass_revenue:
                 continue
+            rating = make_rating(
+                item.employ_cost,
+                item.rent_val,
+                ass_revenue
+            )
             out.append([
                 bus_type,
                 ass_revenue,
-           #      (ASSESSED_EMPLOYMENT_COST + RENT_VAL) / ASSESSED_REVENUE
-                (item.employ_cost + item.rent_val)/ ass_revenue
+                rating,
             ])
         out.sort(key=lambda x: x[2])
     return out

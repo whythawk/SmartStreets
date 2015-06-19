@@ -11,9 +11,17 @@ var S = (function() {
       'textColor': '#F0F'
     },
 
+    iconRatingColours: [
+      ['red', 'white', 'black'],
+      ['orange', 'black', 'black'],
+      ['green', 'white', 'black']
+    ],
+
     defaultTiles: 'Hydda.Full',
 
     listSortOpts: [
+      ['Rating (asc)', 'rating'],
+      ['Rating (desc)', 'rating desc'],
       ['Rate payer (asc)', 'rate_payer'],
       ['Rate payer (desc)', 'rate_payer desc'],
       ['Business type (asc)', 'bus_type'],
@@ -175,6 +183,7 @@ var S = (function() {
       // setup filter controls
       $('#map-reset').on('keyPress click', S.resetMap);
       $('#vacant').buttonset().change(S.filterAction);
+      $('#rating').buttonset().change(S.filterAction);
       $('#business-type').on('keyPress change', S.filterAction);
       $('#list-sort').on('keyPress change', S.filterAction);
     },
@@ -270,11 +279,45 @@ var S = (function() {
       });
     },
 
-    makeIcon: function(numberItems) {
-      var i = S.iconConfig;
-      var fullRadius = i.radius + i.border;
+    ratingIcon: function (rating){
+      var ratingIcon;
+      if (rating > 1.5){
+        ratingIcon = 2;
+      } else if (rating > 0.5){
+        ratingIcon = 1;
+      } else {
+        ratingIcon = 0;
+      }
+      return ratingIcon;
+    },
+
+    makeIcon: function(numberItems, ratings) {
+      var iconFillColor;
+      var iconBorderColor;
+      var iconTextColor;
+      var config = S.iconConfig;
+      var fullRadius = config.radius + config.border;
       var size = fullRadius * 2;
       var textY = fullRadius * 1.3;
+      var i;
+      var rating = null;
+      var colours;
+      if (ratings.length){
+        rating = 0;
+        for(i = 0; i < ratings.length; i++) {
+          rating += ratings[i];
+        }
+        rating = rating/ratings.length;
+        colours = S.iconRatingColours[S.ratingIcon(rating)];
+        iconFillColor = colours[0];
+        iconTextColor = colours[1];
+        iconBorderColor = colours[2];
+      } else {
+        iconFillColor = config.fill;
+        iconBorderColor = config.borderColor;
+        iconTextColor = config.textColor;
+      }
+
 
       var iconHtml = [
         '<svg width="',
@@ -286,21 +329,21 @@ var S = (function() {
         '" cy="',
         fullRadius,
         '" r="',
-        i.radius,
+        config.radius,
         '" stroke="',
-        i.borderColor,
+        iconBorderColor,
         '" stroke-width="',
-        i.border,
+        config.border,
         '" fill="',
-        i.fill,
+        iconFillColor,
         '" /> <text x="',
         fullRadius,
         '" y="',
         textY,
         '" font-size="',
-        i.radius,
+        config.radius,
         'px" text-anchor="middle" fill="',
-        i.textColor,
+        iconTextColor,
         '">',
         numberItems,
         '</text> </svg>'
@@ -405,6 +448,19 @@ var S = (function() {
           break;
       }
 
+      // rating
+      switch ($('#rating input:checked').val()) {
+        case '2':
+          S.filter.rating = 2;
+          break;
+        case '1':
+          S.filter.rating = 1;
+          break;
+        case '0':
+          S.filter.rating = 0;
+          break;
+      }
+
       // revenue
       var $revenueRange = $("#revenue-range");
       S.filter.revenueMin = $revenueRange.slider("values", 0);
@@ -423,10 +479,17 @@ var S = (function() {
 
       for (i = 0; i < ids.length; i++) {
         item = S.premises[ids[i]];
-        // vacant
 
+        // vacant
         if (S.filter.vacant !== undefined) {
           if (item.vacant !== S.filter.vacant) {
+            continue;
+          }
+        }
+
+        // rating
+        if (S.filter.rating !== undefined && item.rating) {
+          if (item.rating[1] !== S.filter.rating) {
             continue;
           }
         }
@@ -485,16 +548,20 @@ var S = (function() {
       var p;
       var popup = [];
       var count = 0;
+      var ratings = [];
       popup.push('<div style="width:250px;max-height:200px;overflow:auto;position:relative;padding-right:10px;">');
       for (i = 0; i < ids.length; i++) {
         count += 1;
         id = ids[i];
         p = S.premises[id];
         popup.push(S.makeItem(p, count, S.popupLimitPotentialRevenues));
+        if (p.rating){
+          ratings.push(p.rating[1]);
+        }
       }
       popup.push('</div>');
       var marker = L.marker(latLng, {
-          icon: S.makeIcon(ids.length),
+          icon: S.makeIcon(ids.length, ratings),
           riseOnHover: true
         })
         .bindPopup(popup.join(' '))
@@ -530,7 +597,9 @@ var S = (function() {
       if (p.vacant) {
         popup.push(S.infoPotentialrevenue(p.revenue_potential, limit));
       } else {
-        popup.push(S.info('Rating:', S.ratingHtml(S.makeRating(p))));
+        if (p.rating){
+        popup.push(S.info('Rating:', S.ratingHtml(p.rating)));
+        }
       }
       popup.push('</div>');
       popup.push('</div>');
@@ -541,16 +610,23 @@ var S = (function() {
       return (item.employ_cost + item.rent_val) / item.revenue;
     },
 
+
     ratingHtml: function (rating){
+      if (!rating){
+        return 'VOID';
+      }
       var text;
       var css;
-      if (rating < 0.9){
+      switch (rating[1]){
+        case 2:
         text = 'Good';
         css = 'rating-good';
-      } else if (rating < 1.1) {
+        break;
+        case 1:
         text = 'Average';
         css = 'rating-avg';
-      } else {
+        break;
+        default:
         text = 'Poor';
         css = 'rating-poor';
       }
