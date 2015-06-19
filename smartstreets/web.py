@@ -69,10 +69,23 @@ def make_date(value):
 
 
 def make_float(value):
+    value = value.replace(',', '')
     try:
         value = float(value)
     except:
         value = None
+    return value
+
+
+def make_int(value):
+    value = value.replace(',', '')
+    try:
+        value = int(value)
+    except:
+        try:
+            value = int(float(value))
+        except:
+            value = None
     return value
 
 
@@ -87,14 +100,14 @@ VALUE_CONVERSION_FN_PREMISES = {
     'VACANT': fn_vacant,
     'RATES_START': make_date,
     'EMPTY_FROM': make_date,
-    'RENT_VAL': make_float,
+    'RENT_VAL': make_int,
     'SIZE_M2': make_float,
     'LAT': make_float,
     'LNG': make_float,
     'FOOTFALL': make_float,
-    'REVENUE': make_float,
+    'REVENUE': make_int,
     'EMPLOY_COUNT': make_float,
-    'EMPLOY_COST': make_float,
+    'EMPLOY_COST': make_int,
     'BUS_TYPE': make_business_type,
 }
 
