@@ -12,6 +12,9 @@ app.config.update(config)
 
 db = SQLAlchemy(app)
 
+
+RENT_VALUE_POTENTIAL_FACTOR = 0.12
+
 HTML_PAGES = [
     'home',
     'businesses',
@@ -314,11 +317,14 @@ def quick_rating(rating):
 
 def make_revenue(item, size_dict, revenue_dict):
     out = []
+    rent_revenue = item.rent_val / RENT_VALUE_POTENTIAL_FACTOR
     if item.size_m2 and item.rent_val:
         for bus_type in size_dict:
             ass_revenue = (revenue_dict[bus_type] / (size_dict[bus_type] + item.size_m2) * item.size_m2)
             if not ass_revenue:
                 continue
+            if ass_revenue > rent_revenue:
+                ass_revenue = rent_revenue
             rating = make_rating(
                 item.employ_cost,
                 item.rent_val,
