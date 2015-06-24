@@ -38,20 +38,22 @@ var S = (function() {
 
     popupLimitPotentialRevenues: 3,
 
-    initPage: function (){
+    initPage: function() {
       var fragment;
       var fragments;
       fragment = window.location.hash;
-      if (fragment && fragment.length > 1){
+      if (fragment && fragment.length > 1) {
         fragments = fragment.substring(1).split('~');
       } else {
         fragments = ['home'];
       }
-      if (fragments.length === 1){
+      if (fragments.length === 1) {
         $.get('/feed_page/' + fragments[0], S.pageUpdate, 'html');
-      } else if (fragments.length === 2){
+      } else if (fragments.length === 2) {
 
-        $.getJSON('/feed', {outcode: fragments[0]}, S.processBusinessMapFeed);
+        $.getJSON('/feed', {
+          outcode: fragments[0]
+        }, S.processBusinessMapFeed);
       }
 
 
@@ -231,18 +233,18 @@ var S = (function() {
       $('#list-sort').on('keyPress change', S.filterAction);
     },
 
-      tabChangeEvent: function () {
-        var active = $("#tabs").tabs("option", "active");
-        var action = S.getFragment($('#tabs ul:eq(0) li:eq(' + active + ') a:eq(0)').attr('href'));
-        var city = window.location.hash.split('~')[0];
-        window.location.hash = city + '~' + action;
-        $('.ss-nav-city').each(function (index, item) {
-          city = $(item).attr('href').split('~')[0];
-          $(item).attr('href', city + '~' + action);
-        });
-       // window.location.hash = active[0].attr('href')
-        S.filterAction();
-      },
+    tabChangeEvent: function() {
+      var active = $("#tabs").tabs("option", "active");
+      var action = S.getFragment($('#tabs ul:eq(0) li:eq(' + active + ') a:eq(0)').attr('href'));
+      var city = window.location.hash.split('~')[0];
+      window.location.hash = city + '~' + action;
+      $('.ss-nav-city').each(function(index, item) {
+        city = $(item).attr('href').split('~')[0];
+        $(item).attr('href', city + '~' + action);
+      });
+      // window.location.hash = active[0].attr('href')
+      S.filterAction();
+    },
 
     update_area: function(area) {
       // get the marker data
@@ -352,11 +354,11 @@ var S = (function() {
       });
     },
 
-    ratingIcon: function (rating){
+    ratingIcon: function(rating) {
       var ratingIcon;
-      if (rating > 1.5){
+      if (rating > 1.5) {
         ratingIcon = 2;
-      } else if (rating > 0.5){
+      } else if (rating > 0.5) {
         ratingIcon = 1;
       } else {
         ratingIcon = 0;
@@ -375,12 +377,12 @@ var S = (function() {
       var i;
       var rating = null;
       var colours;
-      if (ratings.length){
+      if (ratings.length) {
         rating = 0;
-        for(i = 0; i < ratings.length; i++) {
+        for (i = 0; i < ratings.length; i++) {
           rating += ratings[i];
         }
-        rating = rating/ratings.length;
+        rating = rating / ratings.length;
         colours = S.iconRatingColours[S.ratingIcon(rating)];
         iconFillColor = colours[0];
         iconTextColor = colours[1];
@@ -465,11 +467,11 @@ var S = (function() {
       var activeTab;
       S.processFeedData(data);
       $('#map-city').text(S.city);
-      if (S.premises_ids.length){
-        if (location.hash.split('~')[1] === 'list'){
+      if (S.premises_ids.length) {
+        if (location.hash.split('~')[1] === 'list') {
           activeTab = 1;
         } else {
-          activeTab = 0 ;
+          activeTab = 0;
         }
         S.map_page(activeTab);
         S.update_filters();
@@ -655,7 +657,7 @@ var S = (function() {
         id = ids[i];
         p = S.premises[id];
         popup.push(S.makeItem(p, count, S.popupLimitPotentialRevenues));
-        if (p.rating){
+        if (p.rating) {
           ratings.push(p.rating[1]);
         }
       }
@@ -698,8 +700,8 @@ var S = (function() {
       if (p.vacant) {
         popup.push(S.infoPotentialrevenue(p.revenue_potential, limit));
       } else {
-        if (p.rating){
-        popup.push(S.info('Rating:', S.ratingHtml(p.rating)));
+        if (p.rating) {
+          popup.push(S.info('Rating:', S.ratingHtml(p.rating)));
         }
       }
       popup.push('</div>');
@@ -707,31 +709,31 @@ var S = (function() {
       return popup.join(' ');
     },
 
-    makeRating: function (item){
+    makeRating: function(item) {
       return (item.employ_cost + item.rent_val) / item.revenue;
     },
 
 
-    ratingHtml: function (rating){
-      if (!rating){
+    ratingHtml: function(rating) {
+      if (!rating) {
         return 'VOID';
       }
       var text;
       var css;
-      switch (rating[1]){
+      switch (rating[1]) {
         case 2:
-        text = 'Good';
-        css = 'rating-good';
-        break;
+          text = 'Good';
+          css = 'rating-good';
+          break;
         case 1:
-        text = 'Average';
-        css = 'rating-avg';
-        break;
+          text = 'Average';
+          css = 'rating-avg';
+          break;
         default:
-        text = 'Poor';
-        css = 'rating-poor';
+          text = 'Poor';
+          css = 'rating-poor';
       }
-      return '<span class="rating ' + css + '"> '+ text + '</span>';
+      return '<span class="rating ' + css + '"> ' + text + '</span>';
     },
 
     setTiles: function(tile) {
@@ -832,7 +834,7 @@ var S = (function() {
       for (i = 0; i < revenues.length && (!limit || i < limit); i++) {
         //
         bus = revenues[i];
-        out.push(S.infoPotential(S.business_type_name[bus[0]] + ':', S.asMoney(bus[1]) + ' ' +  S.ratingHtml(bus[2])));
+        out.push(S.infoPotential(S.business_type_name[bus[0]] + ':', S.asMoney(bus[1]) + ' ' + S.ratingHtml(bus[2])));
       }
       return S.info('Potential revenue:', out.join(', '));
     },
@@ -872,28 +874,30 @@ var S = (function() {
       S.update_area(value);
     },
 
-    getFragment: function (url){
+    getFragment: function(url) {
       // FIXME this is crap
       return url.split('#')[1];
     },
 
-    navClickPage: function(e){
+    navClickPage: function(e) {
       var fragment = S.getFragment($(e.target).attr('href'));
-      if (!fragment){
+      if (!fragment) {
         fragment = 'home';
       }
       $.get('/feed_page/' + fragment, S.pageUpdate, 'html');
     },
 
-    navClickCity: function(e){
+    navClickCity: function(e) {
       var fragment = S.getFragment($(e.target).attr('href'));
       var outcode = fragment.split('~')[0];
-      $.getJSON('/feed', {outcode: outcode}, S.processBusinessMapFeed);
+      $.getJSON('/feed', {
+        outcode: outcode
+      }, S.processBusinessMapFeed);
 
     },
 
-      // FIXME this is crap
-    pageUpdate: function(data){
+    // FIXME this is crap
+    pageUpdate: function(data) {
       $('#page-content').empty().append(data).show();
       $('#premises-content').hide();
     },
