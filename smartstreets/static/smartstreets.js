@@ -298,6 +298,7 @@ var S = (function() {
 
 
     initMapChanger: function() {
+      return;
       var $mapTiles = $('#map-tiles');
       var tiles = [];
       var providers = L.TileLayer.Provider.providers;
@@ -438,7 +439,8 @@ var S = (function() {
         [S.latMin, S.lngMin],
         [S.latMax, S.lngMax]
       ]);
-      $('#map-tiles').val(S.defaultTiles).change();
+     // $('#map-tiles').val(S.defaultTiles).change();
+      S.setTiles(S.defaultTiles);
 
     },
 
