@@ -25,6 +25,7 @@ HTML_PAGES = [
     'businesses',
     'councils',
     'landlords',
+    'terms',
 ]
 
 HIDDEN_BUS_TYPES = [
