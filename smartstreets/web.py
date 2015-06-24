@@ -1,4 +1,3 @@
-import os
 from collections import defaultdict
 
 from flask import Flask, render_template, jsonify, request, abort
@@ -210,9 +209,6 @@ def feed():
     results = Premises.query.with_entities(
         *cols
     )
-  #  city = request.args.get('city')
-  #  if city:
-  #      results = results.filter_by(city=city)
     outcode = request.args.get('outcode')
     if outcode:
         results = results.filter_by(outcode=outcode)
@@ -220,7 +216,9 @@ def feed():
     results = results.all()
 
     # sort business types for front end
-    business_types = [[k, v, k in HIDDEN_BUS_TYPES] for k, v in BUSINESS_TYPES.items()]
+    business_types = [
+        [k, v, k in HIDDEN_BUS_TYPES] for k, v in BUSINESS_TYPES.items()
+    ]
     business_types.sort(key=lambda x: x[1])
 
     # potential revenues
@@ -310,7 +308,7 @@ def areas():
 def make_rating(employ_cost, rent_val, revenue):
     if not (revenue and employ_cost and rent_val):
         return None
-    rating = (employ_cost + rent_val)/ revenue
+    rating = (employ_cost + rent_val) / revenue
     return [rating, quick_rating(rating)]
 
 
@@ -327,7 +325,11 @@ def make_revenue(item, size_dict, revenue_dict):
     rent_revenue = item.rent_val / RENT_VALUE_POTENTIAL_FACTOR
     if item.size_m2 and item.rent_val:
         for bus_type in size_dict:
-            ass_revenue = (revenue_dict[bus_type] / (size_dict[bus_type] + item.size_m2) * item.size_m2)
+            ass_revenue = (
+                revenue_dict[bus_type] /
+                (size_dict[bus_type] + item.size_m2)
+                * item.size_m2
+            )
             if not ass_revenue:
                 continue
             if ass_revenue > rent_revenue:
