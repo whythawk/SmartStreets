@@ -474,7 +474,7 @@ var S = (function() {
         [S.latMin, S.lngMin],
         [S.latMax, S.lngMax]
       ]);
-     // $('#map-tiles').val(S.defaultTiles).change();
+      // $('#map-tiles').val(S.defaultTiles).change();
       S.setTiles(S.defaultTiles);
 
     },
@@ -628,7 +628,7 @@ var S = (function() {
           continue;
         }
 
-          // rental
+        // rental
         if (item.rent_val && Math.ceil(item.rent_val) < S.filter.rentalMin) {
           continue;
         }
