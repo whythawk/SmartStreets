@@ -68,6 +68,10 @@ var S = (function() {
       var rowData;
       var revenueMin;
       var revenueMax;
+      var rentMin;
+      var rentMax;
+      var sizeMin;
+      var sizeMax;
       var businessType;
       var lngs;
       var lats;
@@ -126,10 +130,30 @@ var S = (function() {
             revenueMin = row.revenue;
           }
         }
+        if (row.rent_val) {
+          if (!rentMax || row.rent_val > rentMax) {
+            rentMax = row.rent_val;
+          }
+          if (!rentMin || row.rent_val < rentMin) {
+            rentMin = row.rent_val;
+          }
+        }
+        if (row.size_m2) {
+          if (!sizeMax || row.size_m2 > sizeMax) {
+            sizeMax = row.size_m2;
+          }
+          if (!sizeMin || row.size_m2 < sizeMin) {
+            sizeMin = row.size_m2;
+          }
+        }
       }
 
       S.revenueMin = Math.floor(revenueMin);
       S.revenueMax = Math.ceil(revenueMax);
+      S.rentMin = Math.floor(rentMin);
+      S.rentMax = Math.ceil(rentMax);
+      S.sizeMin = Math.floor(sizeMin);
+      S.sizeMax = Math.ceil(sizeMax);
 
       S.locations = locations;
       S.premises = premises;
@@ -178,6 +202,22 @@ var S = (function() {
         }
       });
 
+      $("#rental-range").slider({
+        range: true,
+        slide: function(event, ui) {
+          $("#rental").val(
+            S.asMoney(ui.values[0]) + " - " + S.asMoney(ui.values[1])
+          );
+        }
+      });
+      $("#size-m2-range").slider({
+        range: true,
+        slide: function(event, ui) {
+          $("#size-m2").val(
+            ui.values[0] + " - " + ui.values[1]
+          );
+        }
+      });
 
       // map tile changer
       S.initMapChanger();
@@ -209,19 +249,49 @@ var S = (function() {
       $.getJSON('/feed', area, S.processBusinessMapFeed);
     },
 
+    update_range: function($range, $label, min, max, money) {
+      var text;
+      $range.off('slidechange');
+      $range.slider("option", "max", max);
+      $range.slider("option", "min", min);
+      $range.slider("option", "values", [min, max]);
+      if (money) {
+        text = S.asMoney(min) +
+          " - " + S.asMoney(max);
+      } else {
+        text = $range.slider("values", 0) +
+          " - " + $range.slider("values", 1);
+      }
+
+      $label.val(text);
+      $range.on('slidechange', S.filterAction);
+    },
+
     update_filters: function() {
-      // revenue range
-      var $revenueRange = $("#revenue-range");
-      $revenueRange.off('slidechange');
-      $revenueRange.slider("option", "max", S.revenueMax);
-      $revenueRange.slider("option", "min", S.revenueMin);
-      $revenueRange.slider("option", "values", [S.revenueMin, S.revenueMax]);
 
-      $("#revenue").val(
-        S.asMoney($revenueRange.slider("values", 0)) +
-        " - " + S.asMoney($revenueRange.slider("values", 1)));
+      S.update_range(
+        $('#revenue-range'),
+        $('#revenue'),
+        S.revenueMin,
+        S.revenueMax,
+        true
+      );
 
-      $revenueRange.on('slidechange', S.filterAction);
+      S.update_range(
+        $('#rental-range'),
+        $('#rental'),
+        S.rentMin,
+        S.rentMax,
+        true
+      );
+
+      S.update_range(
+        $('#size-m2-range'),
+        $('#size-m2'),
+        S.sizeMin,
+        S.sizeMax,
+        false
+      );
     },
 
 
@@ -466,9 +536,19 @@ var S = (function() {
       }
 
       // revenue
-      var $revenueRange = $("#revenue-range");
-      S.filter.revenueMin = $revenueRange.slider("values", 0);
-      S.filter.revenueMax = $revenueRange.slider("values", 1);
+      var $range = $("#revenue-range");
+      S.filter.revenueMin = $range.slider("values", 0);
+      S.filter.revenueMax = $range.slider("values", 1);
+
+      // rent
+      var $range = $("#rental-range");
+      S.filter.rentalMin = $range.slider("values", 0);
+      S.filter.rentalMax = $range.slider("values", 1);
+
+      // size m2
+      var $range = $("#size-m2-range");
+      S.filter.sizeMin = $range.slider("values", 0);
+      S.filter.sizeMax = $range.slider("values", 1);
 
       // business type
       S.filter.businessType = $('#business-type').val();
@@ -506,6 +586,22 @@ var S = (function() {
           continue;
         }
         if (item.revenue && Math.floor(item.revenue) > S.filter.revenueMax) {
+          continue;
+        }
+
+          // rental
+        if (item.rent_val && Math.ceil(item.rent_val) < S.filter.rentalMin) {
+          continue;
+        }
+        if (item.rent_val && Math.floor(item.rent_val) > S.filter.rentalMax) {
+          continue;
+        }
+
+        //size
+        if (item.size_m2 && Math.ceil(item.size_m2) < S.filter.sizeMin) {
+          continue;
+        }
+        if (item.size_m2 && Math.floor(item.size_m2) > S.filter.sizeMax) {
           continue;
         }
 
