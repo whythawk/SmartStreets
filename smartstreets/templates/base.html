@@ -78,6 +78,96 @@
       height:600px;
       margin-bottom:20px;
     }
+
+/* Extra CSS for Pikhaya */
+    .navbar-default {
+      background-color:#fff;
+    }
+
+.navbar-brand {
+    height: 100px;
+    padding: 0;
+}
+
+.navbar-default {
+    border: none;
+}
+
+.navbar, .panel {
+    border-radius: 0;
+}
+
+ul.nav {
+    margin-bottom: 20px 0 0;
+}
+
+ul.nav li {
+    font-size: 0.8em;
+    color: #000;
+}
+
+ul.nav li a {
+    color: #000;
+    background-color: #f5f5f5;
+    margin-right: 5px;
+    border: 1px solid lightgrey;
+    border-bottom: none;
+}
+
+ul.nav li a.active {
+    color: #000;
+}
+
+.panel-default > .panel-heading {
+    /*background-color: #16d289;*/
+    background-color: #e5e5e5;
+    border-radius: 0;
+    border: none;
+}
+
+.panel-heading h1 {
+    color: #000;
+    font-weight: 300;
+    letter-spacing: 1;
+}
+
+.panel-default {
+    border: none;
+    background-color: #f5f5f5;
+}
+
+div[class^="col-md-"], div[class*=" col-md-"] {
+    padding-left: 0;
+}
+
+.panel-body p {
+    font-weight: 200;
+    font-size: 0.5em;
+    margin-bottom: 20px;
+}
+
+.panel-body img {
+    border-radius: 0;
+}
+
+.ui-tabs .ui-widget-header {
+    border: 1px solid #999;
+    background: #999 url("images/ui-bg_gloss-wave_35_f6a828_500x100.png") 50% 50% repeat-x;
+    color: #fff;
+    font-weight: bold;
+}
+
+.ui-slider .ui-widget-header {
+    background: #999 url("images/ui-bg_gloss-wave_35_f6a828_500x100.png") 50% 50% repeat-x;
+}
+
+.ui-corner-all, .ui-corner-right, .ui-corner-left, .ui-corner-top {
+  border-radius: 0;
+}
+
+.ui-widget-content, .ui-widget-header {
+  border: 1px solid #999;
+}
   </style>
 
 </head>
@@ -86,17 +176,27 @@
 
   <div class="container">
   <div class="row">
-    <h1>Pikhaya Smart Streets</h1>
-    <nav class="navbar navbar-default">
-    <ul class="nav navbar-nav">
-      <li><a class="ss-nav-page" href="#">Home</a></li>
-      <li><a class="ss-nav-page" href="#businesses">Business seekers</a></li>
-      <li><a class="ss-nav-page" href="#councils">Local Councils</a></li>
-      <li><a class="ss-nav-page" href="#landlords">Letting Agents</a></li>
-      <li><a class="ss-nav-city" href="#LS1~map">Leeds</a></li>
-      <li><a class="ss-nav-city" href="#SR1~map">Sunderland</a></li>
-    </ul>
-  </nav>
+       <nav class="navbar navbar-default">
+         <div class="row">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="#">
+              <img alt="Pikhaya Smart Streets" src="/static/logo.png">
+            </a>
+          </div>
+        </div>
+        <div class="row">
+          <ul class="nav navbar-nav">
+            <li><a class="ss-nav-page" href="#">Home</a></li>
+            <li><a class="ss-nav-page" href="#businesses">Business Seekers</a></li>
+            <li><a class="ss-nav-page" href="#councils">Local Councils</a></li>
+            <li><a class="ss-nav-page" href="#landlords">Letting Agents</a></li>
+            <li><a class="ss-nav-city" href="#LS1~map">Leeds</a></li>
+            <li><a class="ss-nav-city" href="#SR1~map">Sunderland</a></li>
+          </ul>
+         </div>
+       </nav>
+
+
   </div>
 <!--
     <div>
