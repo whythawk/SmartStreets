@@ -913,6 +913,9 @@ var S = (function() {
 
     getFragment: function(url) {
       // FIXME this is crap
+      if (url === undefined){
+        return '';
+      }
       return url.split('#')[1];
     },
 
