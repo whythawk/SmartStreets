@@ -269,11 +269,12 @@ var S = (function() {
       var action = S.getFragment($('#tabs ul:eq(0) li:eq(' + active + ') a:eq(0)').attr('href'));
       var city = window.location.hash.split('~')[0];
       window.location.hash = city + '~' + action;
+      if (action === 'map'  || action === 'list'){
       $('.ss-nav-city').each(function(index, item) {
         city = $(item).attr('href').split('~')[0];
         $(item).attr('href', city + '~' + action);
       });
-      // window.location.hash = active[0].attr('href')
+      }
       S.filterAction();
     },
 
@@ -505,12 +506,17 @@ var S = (function() {
       S.processFeedData(data);
       $('#map-city').text(S.city);
       if (S.premises_ids.length) {
-        if (location.hash.split('~')[1] === 'list') {
-          activeTab = 1;
-        } else {
+        var hash = location.hash.split('~')[1];
+        if (hash === 'map') {
           activeTab = 0;
+        } else if (hash === 'list') {
+            activeTab = 1;
+        }else {
+          activeTab = 2;
+          S.makePremisesInfo(parseInt(hash, 10));
         }
         S.map_page(activeTab);
+        $("#tabs").tabs("option", "active", activeTab);
         S.update_filters();
         if (S.map !== null) {
           S.map.remove();
@@ -520,15 +526,30 @@ var S = (function() {
         S.initBusinessTypeSelect();
         S.filterAction();
       }
+      $("#premises-content .page-content").on('click', 'div.prem', S.clickPremises);
     },
 
+    clickPremises: function(){
+      var active = 2; //FIXME
+      var href = '#' + $(this).data('id');
+      $("#tabs").tabs("option", "active", active);
+      $('#tabs ul:eq(0) li:eq(' + active + ') a:eq(0)').attr('href', href);
+      S.makePremisesInfo($(this).data('id'));
+      S.tabChangeEvent();
+    },
 
+    makePremisesInfo: function(id){
+      var $prem = $('#premisestab');
+
+      $prem.empty().append(S.makeItem(S.premises[id], null, 0));
+
+    },
 
     filterAction: function() {
       var active = $("#tabs").tabs("option", "active");
       if (active === 0) {
         $('#maptab').show();
-        $('#listtab').hide();
+        $('#list').hide();
         if (S.map === null) {
           // create the map
           S.map = L.map('map');
@@ -536,14 +557,23 @@ var S = (function() {
         }
         $('#map-extras').show();
         $('#list-extras').hide();
+        $('#premises').hide();
         S.addMarkers();
-      } else {
+      } else if (active === 1){
         $('#map-extras').hide();
         $('#list-extras').show();
         S.makeList();
 
         $('#maptab').hide();
-        $('#listtab').show();
+        $('#list').show();
+        $('#premises').hide();
+        } else {
+          $('#map-extras').hide();
+          $('#list-extras').hide();
+
+          $('#maptab').hide();
+          $('#list').hide();
+          $('#premises').show();
       }
     },
 
@@ -712,9 +742,11 @@ var S = (function() {
     makeItem: function(p, count, limit) {
       var popup = [];
       var panel_class = p.vacant ? 'panel-success' : 'panel-info';
-      popup.push('<div class="panel ' + panel_class + '" ><div class="panel-heading">');
+      popup.push('<div class="panel ' + panel_class + ' prem" data-id="' + p.id + '"><div class="panel-heading">');
       popup.push('<h6 class="panel-title" >');
-      popup.push(count + '.');
+      if (count !== null){
+        popup.push(count + '.');
+      }
       if (p.vacant) {
         popup.push('<strong>VACANT</strong>');
       } else {
@@ -735,7 +767,8 @@ var S = (function() {
       popup.push(S.info('Size m<sup>2</sup>:', p.size_m2));
       popup.push(S.info('Revenue:', S.asMoney(p.revenue)));
       if (p.vacant) {
-        popup.push(S.infoPotentialrevenue(p.revenue_potential, limit));
+        var isFull = (count === null);
+        popup.push(S.infoPotentialrevenue(p.revenue_potential, limit, isFull));
       } else {
         if (p.rating) {
           popup.push(S.info('Rating:', S.ratingHtml(p.rating)));
@@ -788,7 +821,7 @@ var S = (function() {
       var i;
       var items;
       // remove existing list
-      $('#list').empty().scrollTop(0);
+      $('#listtab').empty().scrollTop(0);
 
 
 
@@ -811,7 +844,7 @@ var S = (function() {
         popup.push(S.makeItem(p, count, 0));
       }
 
-      $('#list').append(popup.join('\n'));
+      $('#listtab').append(popup.join('\n'));
     },
 
     makeSortFn: function(a, b) {
@@ -864,16 +897,26 @@ var S = (function() {
       return '£' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     },
 
-    infoPotentialrevenue: function(revenues, limit) {
+    infoPotentialrevenue: function(revenues, limit, isFull) {
       var out = [];
       var i;
       var bus;
+      var join;
+      if (isFull){
+        out.push('');
+      }
       for (i = 0; i < revenues.length && (!limit || i < limit); i++) {
         //
         bus = revenues[i];
         out.push(S.infoPotential(S.business_type_name[bus[0]] + ':', S.asMoney(bus[1]) + ' ' + S.ratingHtml(bus[2])));
       }
-      return S.info('Potential revenue:', out.join(', '));
+      if (isFull){
+        join = '<br/>';
+      } else {
+        join = ', ';
+      }
+
+      return S.info('Potential revenue:', out.join(join));
     },
 
     info: function(title, data) {
