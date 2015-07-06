@@ -52,13 +52,10 @@ var S = (function() {
       if (fragments.length === 1) {
         $.get('/feed_page/' + fragments[0], S.pageUpdate, 'html');
       } else if (fragments.length === 2) {
-
         $.getJSON('/feed', {
           outcode: fragments[0]
         }, S.processBusinessMapFeed);
       }
-
-
     },
 
     processFeedData: function(data) {
@@ -83,6 +80,15 @@ var S = (function() {
       var lngs;
       var lats;
       var premises_ids;
+      var sum_revenue = 0;
+      var sum_rent_val = 0;
+      var sum_m2 = 0;
+      var sum_employ_cost = 0;
+      var sum_employ_count = 0;
+      var sum_vacant_rent_val = 0;
+      var sum_vacant_m2 = 0;
+      var sum_vacant_employ_cost = 0;
+      var sum_vacant_employ_count = 0;
 
       // BUSINESS TYPES
       // 1. list stored in S.businessTypes
@@ -129,7 +135,21 @@ var S = (function() {
           lats.push(row.lat);
           lngs.push(row.lng);
         }
+
+        if (row.employ_cost){
+          sum_employ_cost += row.employ_cost;
+          if (row.vacant){
+            sum_vacant_employ_cost += row.employ_cost;
+          }
+        }
+        if (row.employ_count){
+          sum_employ_count += row.employ_count;
+          if (row.vacant){
+            sum_vacant_employ_count += row.employ_count;
+          }
+        }
         if (row.revenue) {
+          sum_revenue += row.revenue;
           revenues.push(row.revenue);
           if (!revenueMax || row.revenue > revenueMax) {
             revenueMax = row.revenue;
@@ -139,6 +159,7 @@ var S = (function() {
           }
         }
         if (row.rent_val) {
+          sum_rent_val += row.rent_val;
           rentals.push(row.rent_val);
           if (!rentMax || row.rent_val > rentMax) {
             rentMax = row.rent_val;
@@ -146,14 +167,21 @@ var S = (function() {
           if (!rentMin || row.rent_val < rentMin) {
             rentMin = row.rent_val;
           }
+          if (row.vacant){
+            sum_vacant_rent_val += row.rent_val;
+          }
         }
         if (row.size_m2) {
+          sum_m2 += row.size_m2;
           size_m2s.push(row.size_m2);
           if (!sizeMax || row.size_m2 > sizeMax) {
             sizeMax = row.size_m2;
           }
           if (!sizeMin || row.size_m2 < sizeMin) {
             sizeMin = row.size_m2;
+          }
+          if (row.vacant){
+            sum_vacant_m2 += row.size_m2;
           }
         }
       }
@@ -164,6 +192,17 @@ var S = (function() {
       S.rentMax = Math.ceil(rentMax);
       S.sizeMin = Math.floor(sizeMin);
       S.sizeMax = Math.ceil(sizeMax);
+
+      S.sum_revenue = sum_revenue;
+      S.sum_rent_val = sum_rent_val;
+      S.sum_m2 = Math.floor(sum_m2);
+      S.sum_employ_cost = sum_employ_cost;
+      S.sum_employ_count = Math.floor(sum_employ_count);
+
+      S.sum_vacant_rent_val = sum_vacant_rent_val;
+      S.sum_vacant_m2 = Math.floor(sum_vacant_m2);
+      S.sum_vacant_employ_cost = sum_vacant_employ_cost;
+      S.sum_vacant_employ_count = Math.floor(sum_vacant_employ_count);
 
       S.revenueScale = S.scaleRange(revenues);
       S.rentScale = S.scaleRange(rentals);
@@ -198,7 +237,7 @@ var S = (function() {
       }
       for (i = 0; i < rangePoints; i++) {
         index = Math.ceil((len / (rangePoints - 1)) * i);
-        scales.push(list[index])
+        scales.push(list[index]);
       }
       return scales;
     },
@@ -247,6 +286,7 @@ var S = (function() {
         range: true,
         slide: function(event, ui) {
           $("#size-m2").val(
+
             S.sizeScale[ui.values[0]] + " - " + S.sizeScale[ui.values[1]]
           );
         }
@@ -269,7 +309,7 @@ var S = (function() {
       var action = S.getFragment($('#tabs ul:eq(0) li:eq(' + active + ') a:eq(0)').attr('href'));
       var city = window.location.hash.split('~')[0];
       window.location.hash = city + '~' + action;
-      if (action === 'map'  || action === 'list'){
+      if (action === 'map'  || action === 'list' || action ==='aggregate'){
       $('.ss-nav-city').each(function(index, item) {
         city = $(item).attr('href').split('~')[0];
         $(item).attr('href', city + '~' + action);
@@ -380,6 +420,7 @@ var S = (function() {
               tiles.push(opt);
               $mapTiles.append($('<option>', {
                 value: opt,
+
                 text: opt
               }));
             }
@@ -511,8 +552,10 @@ var S = (function() {
           activeTab = 0;
         } else if (hash === 'list') {
             activeTab = 1;
+            } else if (hash === 'aggregate') {
+                activeTab = 2;
         }else {
-          activeTab = 2;
+          activeTab = 3;
           S.makePremisesInfo(parseInt(hash, 10));
         }
         S.map_page(activeTab);
@@ -558,6 +601,7 @@ var S = (function() {
         $('#map-extras').show();
         $('#list-extras').hide();
         $('#premises').hide();
+        $('#aggregate').hide();
         S.addMarkers();
       } else if (active === 1){
         $('#map-extras').hide();
@@ -567,14 +611,47 @@ var S = (function() {
         $('#maptab').hide();
         $('#list').show();
         $('#premises').hide();
-        } else {
+        $('#aggregate').hide();
+        } else if (active===2) {
           $('#map-extras').hide();
           $('#list-extras').hide();
+          S.makeAggregate();
 
           $('#maptab').hide();
           $('#list').hide();
-          $('#premises').show();
+          $('#premises').hide();
+          $('#aggregate').show();
+          } else {
+            $('#map-extras').hide();
+            $('#list-extras').hide();
+
+            $('#maptab').hide();
+            $('#list').hide();
+            $('#aggregate').hide();
+            $('#premises').show();
       }
+    },
+
+
+    makeAggregate: function (){
+      var out = []
+      out.push('<div class="panel panel-info"><div class="panel-heading">');
+      out.push('<h6 class="panel-title" >');
+        out.push('<strong>Overview</strong>');
+      out.push('</h6>');
+      out.push('</div>');
+      out.push('<div class="panel-body">');
+    out.push(S.info('Total Revenue:', S.asMoney(S.sum_revenue)));
+    out.push(S.info('Total Rental:', S.asMoney(S.sum_rent_val )));
+    out.push(S.info('Total Rental Area:', S.sum_m2));
+    out.push(S.info('Total Employee Income:', S.asMoney(S.sum_employ_cost)));
+    out.push(S.info('Total Employees:', S.sum_employ_count));
+    out.push(S.info('Potential Rent:', S.asMoney(S.sum_vacant_rent_val)));
+    out.push(S.info('Vacant Rental Area:', S.sum_vacant_m2));
+    out.push(S.info('Potential Employee Income:', S.asMoney(S.sum_vacant_employ_cost)));
+    out.push(S.info('Potential Employees:', S.sum_vacant_employ_count));
+    out.push('</div>');
+    $('#aggregatetab').empty().append(out.join(''));
     },
 
 
