@@ -21,6 +21,8 @@ var S = (function() {
 
     rangePoints: 10,
 
+    PREM_TAB: 3,
+
     listSortOpts: [
       ['Rating (asc)', 'rating desc'],
       ['Rating (desc)', 'rating'],
@@ -555,7 +557,7 @@ var S = (function() {
             } else if (hash === 'aggregate') {
                 activeTab = 2;
         }else {
-          activeTab = 3;
+          activeTab = S.PREM_TAB;
           S.makePremisesInfo(parseInt(hash, 10));
         }
         S.map_page(activeTab);
@@ -573,7 +575,7 @@ var S = (function() {
     },
 
     clickPremises: function(){
-      var active = 2; //FIXME
+      var active = S.PREM_TAB;
       var href = '#' + $(this).data('id');
       $("#tabs").tabs("option", "active", active);
       $('#tabs ul:eq(0) li:eq(' + active + ') a:eq(0)').attr('href', href);
